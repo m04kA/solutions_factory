@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('mailing/', include("solutions_factory.apps.mailing.urls")),
+    path('api-v1/', include("mailing.urls")),
     path('admin/', admin.site.urls),
-    path('api-auth', include("rest_framework.urls"))
+    path('api-auth', include("rest_framework.urls")),
 ]
