@@ -20,7 +20,7 @@ class MailingsDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mailings
-        exclude = ()
+        fields = "__all__"
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -31,6 +31,25 @@ class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         exclude = ("last_update",)
+
+
+class UserCreateUpdateSerializer(serializers.ModelSerializer):
+    """
+    Сериалайзер создания пользователя
+    """
+
+    class Meta:
+        model = Users
+        exclude = ("last_update",)
+
+    def create(self, validated_data):
+        return Users.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+        return instance
 
 
 class MessagesSerializer(serializers.ModelSerializer):
