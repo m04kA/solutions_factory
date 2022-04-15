@@ -10,10 +10,10 @@ class MailingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mailings
-        fields = ("text", "date_time_start")
+        fields = ("id", "text", "date_time_start")
 
 
-class MailingsDetailSerializer(serializers.ModelSerializer):
+class MailingDetailSerializer(serializers.ModelSerializer):
     """
     Сериалайзер рассылки детально
     """
@@ -21,6 +21,19 @@ class MailingsDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mailings
         fields = "__all__"
+
+
+class MailingsCreateSerializer(serializers.ModelSerializer):
+    """
+    Сериалайзер рассылки детально
+    """
+
+    class Meta:
+        model = Mailings
+        fields = "__all__"
+
+    def create(self, validated_data):
+        return Mailings.objects.create(**validated_data)
 
 
 class UsersSerializer(serializers.ModelSerializer):
