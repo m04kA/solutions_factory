@@ -1,9 +1,12 @@
+from datetime import datetime, timedelta
+
+from psycopg2 import tz
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Mailings, Users, Messages
 from .serializers import MailingsSerializer, UsersSerializer, MailingDetailSerializer, MessagesSerializer, \
     UserCreateUpdateSerializer, MailingsCreateSerializer
-from .tasks_mailing import send_mailing
+from .tasks import send_mailing
 
 
 class MailingsListView(APIView):
@@ -50,7 +53,14 @@ class MailingCreateView(APIView):
             # print(mailing.data["date_time_finish"])
             # print("---------")
             # print(mailing.data)
-            send_mailing.apply_async(args=[mailing.data["id"], ], eta=mailing.data["date_time_start"])
+            date_start = mailing.data["date_time_start"]
+            date_start = datetime.strptime(date_start, '%Y-%m-%dT%H:%M:%SZ') - timedelta(hours=3)
+            # tzinfo = tz.tzlocal()
+            # date_start.replace(tzinfo=tz.tzlocal())
+            print(type(date_start), date_start)
+            send_mailing.apply_async(args=(mailing.data["id"],), eta=date_start)
+            # send_mailing.delay(mailing.data["id"])
+            # send_mailing_new(mailing.data['id'])
             return Response(mailing.data, status=200)
 
         return Response({"error": "Bad request"}, status=400)
