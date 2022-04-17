@@ -8,7 +8,7 @@ urlpatterns = [
     path("create_mailing/", views.MailingCreateView.as_view()),
     path("users/", views.UsersListView.as_view()),
     path("messages/", views.MessageListView.as_view()),
-    path("cr_up_user/", views.UserCreateUpdateView.as_view()),
-    path("cr_up_user/<int:pk>/", views.UserCreateUpdateView.as_view()),
+    path("create_user/", views.UserCreateUpdateView.as_view()),
+    path("update_user/<int:pk>/", views.UserCreateUpdateView.as_view()),
 
 ]

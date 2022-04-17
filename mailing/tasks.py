@@ -39,14 +39,14 @@ def send_mailing(mailing_id: int):
                 )
                 user = Users.objects.get(id=user["id"])
                 if response.status_code == 200:
-                    message = Messages(success=True, mailing=mailing, user=user)
+                    message = Messages(success=True, mailing_text=mailing, user=user)
                     message.save()
                     continue
 
-                message = Messages(success=False, mailing=mailing, user=user)
+                message = Messages(success=False, mailing_text=mailing, user=user)
                 message.save()
             else:
-                message = Messages(success=False, mailing=mailing, user=user)
+                message = Messages(success=False, mailing_text=mailing, user=user)
                 message.save()
         mailing.done = True
         mailing.save()

@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from django.db.models import Q
 from psycopg2 import tz
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,8 +17,15 @@ class MailingsListView(APIView):
 
     def get(self, request):
         mailings = Mailings.objects.all()
-        seriolazer = MailingsSerializer(mailings, many=True)
-        return Response(seriolazer.data, status=200)
+        seriolazer = MailingsSerializer(mailings, many=True).data
+        count = 0
+        for mailing in mailings:
+            if mailing.done:
+                messages_all = len(Messages.objects.filter(mailing_text=mailing))
+                messages_done = len(Messages.objects.filter(Q(mailing_text=mailing) & Q(success=True)))
+                seriolazer[count]["success_message"] = f"{messages_done} / {messages_all}"
+            count += 1
+        return Response(seriolazer, status=200)
 
 
 class MailingDetailView(APIView):
@@ -30,11 +38,14 @@ class MailingDetailView(APIView):
         if not pk:
             return Response({"error": "Method GET is not allowed"}, status=400)
         try:
-            mailings = Mailings.objects.get(id=pk)
+            mailing = Mailings.objects.get(id=pk)
         except:
             return Response({"error": "Object does not exists"}, status=400)
-        seriolazer = MailingDetailSerializer(mailings)
-        return Response(seriolazer.data, status=200)
+        seriolazer = MailingDetailSerializer(mailing).data
+        messages_all = Messages.objects.filter(mailing_text=mailing)
+        messages_all = MessagesSerializer(messages_all, many=True).data
+        seriolazer["messages"] = messages_all
+        return Response(seriolazer, status=200)
 
 
 class MailingCreateView(APIView):
@@ -46,21 +57,9 @@ class MailingCreateView(APIView):
         mailing = MailingsCreateSerializer(data=request.data)
         if mailing.is_valid(raise_exception=True):
             mailing.save()
-            # print(mailing.data["id"])
-            # print("---------")
-            # print(mailing.data["date_time_start"])
-            # print("---------")
-            # print(mailing.data["date_time_finish"])
-            # print("---------")
-            # print(mailing.data)
             date_start = mailing.data["date_time_start"]
             date_start = datetime.strptime(date_start, '%Y-%m-%dT%H:%M:%SZ') - timedelta(hours=3)
-            # tzinfo = tz.tzlocal()
-            # date_start.replace(tzinfo=tz.tzlocal())
-            print(type(date_start), date_start)
             send_mailing.apply_async(args=(mailing.data["id"],), eta=date_start)
-            # send_mailing.delay(mailing.data["id"])
-            # send_mailing_new(mailing.data['id'])
             return Response(mailing.data, status=200)
 
         return Response({"error": "Bad request"}, status=400)

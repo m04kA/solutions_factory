@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import serializers
 
 from mailing.models import Mailings, Users, Messages
@@ -10,7 +12,7 @@ class MailingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mailings
-        fields = ("id", "text", "date_time_start")
+        fields = ("id", "text", "date_time_start", "done")
 
 
 class MailingDetailSerializer(serializers.ModelSerializer):
@@ -34,6 +36,11 @@ class MailingsCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Mailings.objects.create(**validated_data)
+
+    def validate(self, data):
+        if data["date_time_start"] > data["date_time_finish"]:
+            raise serializers.ValidationError("Date start is more date finish wrong")
+        return data
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -64,12 +71,17 @@ class UserCreateUpdateSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    def validate(self, data):
+        if data['number'] > 79999999999 or data['number'] < 70000000000:
+            raise serializers.ValidationError("Number is wrong")
+        return data
+
 
 class MessagesSerializer(serializers.ModelSerializer):
     """
     Сериалайзер сообщений
     """
-    mailing = serializers.SlugRelatedField(slug_field="text", read_only=True)
+    mailing_text = serializers.SlugRelatedField(slug_field="text", read_only=True)
     user = serializers.SlugRelatedField(slug_field="number", read_only=True)
 
     class Meta:

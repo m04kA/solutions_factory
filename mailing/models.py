@@ -45,7 +45,7 @@ class Messages(models.Model):
     """
     date_time = models.DateTimeField("Дата создания/отправки", default=datetime.now())
     success = models.BooleanField("Статус отправки", default=False)
-    mailing = models.ForeignKey(Mailings, verbose_name="Связанная рассылка", on_delete=models.CASCADE, related_name="mailing_msg")
+    mailing_text = models.ForeignKey(Mailings, verbose_name="Связанная рассылка", on_delete=models.CASCADE, related_name="mailing_msg")
     user = models.ForeignKey(Users, verbose_name="Связанный пользователь", on_delete=models.CASCADE, related_name="user_msg")
     last_update = models.DateTimeField("Дата последнего обновления", auto_now=True)
 
