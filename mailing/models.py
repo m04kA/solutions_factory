@@ -27,7 +27,7 @@ class Users(models.Model):
     number = models.PositiveBigIntegerField("Телефон", unique=True)
     code_mob_opr = models.CharField("Код оператора", max_length=25)
     teg = models.CharField("Тег", max_length=25)
-    time_zone = models.CharField("Часовой пояс", max_length=10)
+    time_zone = models.CharField("Часовой пояс", max_length=30)
     last_update = models.DateTimeField("Дата последнего обновления", auto_now=True)
     active = models.BooleanField("Активность", default=True)
 

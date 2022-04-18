@@ -5,13 +5,19 @@ from .serializers import MailingDetailSerializer, UsersSerializer
 from .models import Mailings, Users, Messages
 from requests import Session
 import datetime
+import logging
+
+logger = logging.getLogger("mailing")
 
 
 @app.task
 def send_mailing(mailing_id: int):
+    logger.info(f"Start mailing (id - {mailing_id})")
     try:
+        logger.info(f"Get detail info about mailing (id - {mailing_id})")
         mailing = Mailings.objects.get(id=mailing_id)
         mailing_data = MailingDetailSerializer(mailing).data
+        logger.info(f"Get info about users (code_mob_opr={mailing_data['filter_info']} or teg={mailing_data['filter_info']})")
         users = Users.objects.filter(Q(code_mob_opr=mailing_data["filter_info"]) | Q(teg=mailing_data["filter_info"]))
         users = UsersSerializer(users, many=True).data
         session = Session()
@@ -31,6 +37,7 @@ def send_mailing(mailing_id: int):
                     "phone": user['number'],
                     "text": mailing_data['text']
                 }
+                logger.info(f"Request to other API (user_id - {data['id']}, text - {data['text']})")
                 response = session.request(
                     method="POST",
                     url=url,
@@ -39,16 +46,18 @@ def send_mailing(mailing_id: int):
                 )
                 user = Users.objects.get(id=user["id"])
                 if response.status_code == 200:
+                    logger.info(f"Create message (mailing_id - {mailing_data['id']}, user_id - {data['id']})")
                     message = Messages(success=True, mailing_text=mailing, user=user)
                     message.save()
                     continue
-
+                logger.error(f"Error create message (mailing_id - {mailing_data['id']}, user_id - {data['id']})")
                 message = Messages(success=False, mailing_text=mailing, user=user)
                 message.save()
             else:
+                logger.info(f"Time`s up message (mailing_id - {mailing_data['id']}, user_id - {user['id']})")
                 message = Messages(success=False, mailing_text=mailing, user=user)
                 message.save()
         mailing.done = True
         mailing.save()
     except Mailings.DoesNotExist:
-        print(f"Mailing does not exists id - {mailing_id}")
+        logger.error(f"Mailing (id - {mailing_id}) does not exists")

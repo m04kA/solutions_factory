@@ -9,8 +9,10 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+import datetime
 import os
 from pathlib import Path
+from CONFIG import DB_SETTINGS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
@@ -24,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-p=+7c)w(z64tww-3b8#^!h#*sip16)w9h$q0ejv2o(5c$pyd8%'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -40,6 +42,7 @@ INSTALLED_APPS = [
     'mailing',
     'rest_framework',
     'flower',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -79,12 +82,12 @@ WSGI_APPLICATION = 'solutions_factory.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'host': '127.0.0.1',
-        'user': 'yarni',
-        'dbname': 'django_ib',
-        'NAME': 'django_ib',
-        'PASSWORD': "password",
-        'port': 5432,
+        'host': DB_SETTINGS["host"],
+        'user': DB_SETTINGS["user"],
+        'dbname': DB_SETTINGS["dbname"],
+        'NAME': DB_SETTINGS["dbname"],
+        'PASSWORD': DB_SETTINGS["PASSWORD"],
+        'port': DB_SETTINGS["port"],
     }
 }
 
@@ -137,3 +140,29 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+    "handlers": {
+        "file": {
+            "class": "logging.FileHandler",
+            "level": "INFO",
+            "formatter": "verbose",
+            "filename": f"{BASE_DIR}/logs/{datetime.datetime.today().date()}.log"
+        },
+    },
+    "loggers": {
+        "mailing": {
+            "level": "INFO",
+            "handlers": ["file"],
+            "propagate": True
+        }
+    }
+}
